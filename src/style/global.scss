@@ -1,0 +1,99 @@
+@import "./config";
+@import "~bootstrap";
+
+.modalLyrics .modal-dialog {
+  width: 100%; // Make the dialog width 100% of the viewport
+  max-width: 100%; // Prevent the dialog from exceeding viewport width
+  margin-left: 4rem; // Remove default margins
+  height: 100%; // Make the dialog height 100% of the viewport
+  max-height: 100%; // Prevent the dialog from exceeding viewport height
+}
+
+.modalLyrics .modal-content {
+  width: 90vw; // Full viewport width
+  height: auto; // Full viewport height
+  border: none; // Optional: Remove borders for a cleaner look
+  border-radius: 0; // Remove border radius to keep it flush with edges
+  display: flex; // Use flexbox for responsive layout
+  flex-direction: column; // Stack items vertically
+}
+
+.modalLyrics .modal-body {
+  flex: 1; // Allow body to take up available space
+  overflow: auto; // Add scrollbars if content overflows
+  //   padding: 100%; // Remove padding for edge-to-edge content
+}
+
+.modalList .modal-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.modalList .modal-dialog {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 10%;
+  height: auto;
+}
+
+.modalList .modal-content {
+  background-color: black;
+  color: white;
+  width: 80vw;
+  height: auto;
+  border: 5px;
+  border-radius: 0;
+}
+
+.modalList .modal-body {
+  flex: 1;
+  overflow: auto;
+  padding: 5;
+}
+
+.modalBio .modal-dialog {
+  width: 100%;
+  max-width: 100%;
+  margin-left: 10%;
+  height: auto;
+}
+
+.modalBio .modal-content {
+  background-color: rgb(0, 0, 0);
+  width: 80vw;
+  height: auto;
+  border: none;
+  border-radius: 0;
+  display: flex;
+  flex-direction: column;
+  color: white;
+}
+
+.modalBio .modal-body {
+  flex: 1;
+  overflow: auto;
+}
+
+.modalLogin .modal-dialog {
+  width: 80%;
+  max-width: 90%;
+  height: 100%;
+  max-height: 100%;
+}
+
+.modalLogin .modal-content {
+  background-color: black;
+  width: 80vw;
+  height: auto;
+  border: none;
+  border-radius: 3;
+  display: flex;
+  flex-direction: column;
+  color: white;
+}
+
+.modalLogin .modal-body {
+  flex: 1;
+  overflow: auto;
+}
