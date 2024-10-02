@@ -1,20 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-// import { useNavigate } from "react-router-dom";
 import "../style/global.scss";
 import { Clock } from "../components/Clock";
 import { selectVotes } from "../store/votes/selectors.js";
-// import {
-//   bootstrapUser,
-//   resetFavData,
-//   resetUserLoginData,
-// } from "../store/admin/slice.js";
-// import {
-//   removeUser,
-//   sendHate,
-//   sendLike,
-//   resetVotes,
-// } from "../store/admin/actions";
 import {
   Container,
   Col,
@@ -28,50 +16,34 @@ import { fetchVotes } from "../store/votes/actions";
 
 export default function HomePage() {
   const votes = useSelector(selectVotes);
-  //   const fav = userFav.favArray;
-  //   const songList = useSelector(selectSongList);
-  //   const songsByTitle = useSelector(selectSongsByTitle);
-  //   const songsByArtist = useSelector(selectSongsByArtist);
-  //   const userId = userFav.userId;
-  //   const username = userFav.username;
 
   const dispatch = useDispatch();
 
   const [shownoSorting, setShownoSorting] = useState(false);
   const [showUserList, setShowUserList] = useState(false);
-  //   const [showLyrics, setShowLyrics] = useState(false);
-  //   const [showBioPat, setShowBioPat] = useState(false);
-  //   const [showBioAnousch, setShowBioAnousch] = useState(false);
-  //   const [showContact, setShowContact] = useState(false);
-  //   const [chosenSong, setChosenSong] = useState("");
-  //   const [listSorting, setListSorting] = useState("names");
-  //   const [nextSong, setNextSong] = useState("");
-  //   const [previousSong, setPreviousSong] = useState("");
+  const [showUserVotes, setShowUserVotes] = useState(false);
+
+  const [likedSongs, setLikedSongs] = useState([]);
+  const [dislikedSongs, setDislikedSongs] = useState([]);
+  const [songVoters, setSongVoters] = useState([]);
+  const [currentUsersData, setCurrentUsersData] = useState([]);
+
+  //   const [songLikeVoters, setSongLikeVoters] = useState([]);
+  //   const [songDislikeVoters, setSongDislikeVoters] = useState([]);
+
+  //   const [votingUsers, setVotingUsers] = useState([]);
+
+  //   const [totalLikes, setTotalLikes] = useState(0);
+  //   const [totalDislikes, setTotalDislikes] = useState(0);
+
   const onClickShowUserList = () => setShowUserList(true);
-  //   const onClickShowSongs = () => setShowSongs(true);
-  //   const onClickShowLyrics = () => setShowLyrics(true);
-  //   const onClickShowBioPat = () => setShowBioPat(true);
-  //   const onClickShowBioAnousch = () => setShowBioAnousch(true);
-  //   const onClickShowContact = () => setShowContact(true);
+  const onClickShowUserVotes = () => setShowUserVotes(true);
 
   const hideUserList = () => setShowUserList(false);
-  //   const hideSongs = () => setShowSongs(false);
-  //   const hideLyrics = () => setShowLyrics(false);
-  //   const hideBioPat = () => setShowBioPat(false);
-  //   const hideBioAnousch = () => setShowBioAnousch(false);
-  //   const hideContact = () => setShowContact(false);
+  const hideUserVotes = () => setShowUserVotes(false);
 
   //   const searchFavData = (favId) => {
   //     return fav.find((u) => u.id === favId);
-  //   };
-  //   //--------------Lyrics SORTING---------------------------
-
-  //   const sortedSongList = (s) => {
-  //     if (s === "id") return songList;
-  //     if (s === "title") return songsByTitle;
-  //     if (s === "artist") return songsByArtist;
-  //     if (s === "favorites") return findLikes();
-  //     else return songList;
   //   };
 
   //   const findLikes = () => {
@@ -84,60 +56,104 @@ export default function HomePage() {
   //all votes:
   const allVotes = () => votes.length;
 
-  const mostLikedSong = () => {
+  //Create liked/disliked arrays
+  const votesStats = () => {
     const likedSongs = {};
     const dislikedSongs = {};
+    // let totalLikes = 0;
+    // let totalDislikes = 0;
 
     votes.forEach((v) => {
-      const key = `${v.title} by ${v.artist}`; // Create a key for the song
+      const key = `${v.song_id} + ${v.title} + ${v.artist}`;
 
       if (v.like === 1) {
-        // If the song is liked
-        likedSongs[key] = (likedSongs[key] || 0) + 1; // Increment the count
+        likedSongs[key] = (likedSongs[key] || 0) + 1;
+        // totalLikes = totalLikes + 1;
       } else {
-        // If the song is disliked
-        dislikedSongs[key] = (dislikedSongs[key] || 0) + 1; // Increment the count
+        dislikedSongs[key] = (dislikedSongs[key] || 0) + 1;
+        // totalDislikes = totalDislikes + 1;
       }
     });
 
     // Convert the likedSongs object into an array
     const likedSongsArray = Object.entries(likedSongs).map(([key, likes]) => {
-      const [title, artist] = key.split(" by "); // Split the key back into title and artist
-      return { title, artist, likes }; // Return the desired format
+      const [song_id, title, artist] = key.split("+");
+      return { song_id, title, artist, likes };
     });
 
-    // Convert the dislikedSongs object into an array
     const dislikedSongsArray = Object.entries(dislikedSongs).map(
       ([key, dislikes]) => {
-        const [title, artist] = key.split(" by "); // Split the key back into title and artist
-        return { title, artist, dislikes }; // Return the desired format
+        const [song_id, title, artist] = key.split("+");
+        return { song_id, title, artist, dislikes };
       }
     );
-
-    console.log("Liked Songs:", likedSongsArray);
-    console.log("Disliked Songs:", dislikedSongsArray);
-
-    return { likedSongsArray, dislikedSongsArray }; // Return both arrays
+    setLikedSongs(likedSongsArray);
+    setDislikedSongs(dislikedSongsArray);
   };
 
-  //----------------------LOGGED IN USERS---------------------------
+  //---------------------FIND USERS FROM VOTED SONG-----------------------
 
-  const usersLoggedIn = () => {
-    const uniqueUsers = new Set(votes.map((v) => v.user_id));
-    return uniqueUsers.size;
+  const findUsers = (songId, type) => {
+    let userArray = [];
+    if (type === "like") {
+      userArray = votes.filter(
+        (v) => Number(v.song_id) === Number(songId) && Number(v.like) === 1
+      );
+    } else if (type === "dislike") {
+      userArray = votes.filter(
+        (v) => Number(v.song_id) === Number(songId) && Number(v.dislike) === 1
+      );
+    }
+    setSongVoters(userArray);
   };
 
-  //old:
-  //   const usersLoggedIn = () => {
-  //     const counts = {};
-  //     votes.forEach((v) => {
-  //       counts[v.user_id] = (counts[v.user_id] || 0) + 1;
-  //     });
-  //     const sum = Object.values(counts).reduce((acc, value) => acc + value, 0);
-  //     return sum;
-  //   };
+  //---------------------STATS COLORING EQUATION----------------------------
+
+  const percentage_coloring = (song) => {
+    return (song / currentUsersData.length) * 100;
+  };
 
   //-----------------DEPENDENCIES-------------------------------
+
+  useEffect(() => {
+    const usersLoggedIn = () => {
+      let usersDataArray = [];
+      const Users = new Set(votes.map((v) => v.user_id));
+
+      Users.forEach((u) => {
+        const userVote = votes.find((v) => u === v.user_id);
+        if (userVote) {
+          const userData = {
+            user_id: userVote.user_id,
+            username: userVote.username,
+            prefs: [],
+          };
+          const userPrefs = votes.filter((v) => u === v.user_id);
+          userPrefs.forEach((vote) => {
+            if (vote.like === 1) {
+              userData.prefs.push({
+                song_id: vote.song_id,
+                title: vote.title,
+                like: 1,
+              });
+            }
+            if (vote.dislike === 1) {
+              userData.prefs.push({
+                song_id: vote.song_id,
+                title: vote.title,
+                like: 0,
+              });
+            }
+          });
+          usersDataArray.push(userData);
+        }
+      });
+      setCurrentUsersData(usersDataArray);
+      console.log("at useEffect: ", usersDataArray);
+    };
+
+    usersLoggedIn();
+  }, [votes]);
 
   useEffect(() => {
     dispatch(fetchVotes());
@@ -164,7 +180,7 @@ export default function HomePage() {
         fluid
         className="text-white"
       >
-        <Row className="mb-5 me-0 text-white text-center">
+        <Row className="mb-1 me-0 text-white text-center">
           {!localStorage.muziekRoute_username ||
           localStorage.muziekRoute_username.startsWith("user-") ? (
             <div className="mt-5 fs-1">⭐️Muziek Routers ADMIN Page !⭐️</div>
@@ -178,7 +194,7 @@ export default function HomePage() {
         </Row>
         <Clock />
 
-        <Row className="mb-5 me-0">
+        <Row className="mb-2 ms-4 me-3">
           <Col md={4}>
             <Form.Select
               id="shownoSorting"
@@ -187,7 +203,6 @@ export default function HomePage() {
               value={shownoSorting}
               onChange={(e) => {
                 setShownoSorting(e.target.value);
-                usersLoggedIn();
                 localStorage.setItem(
                   "muziek_route_shownoSorting",
                   e.target.value
@@ -209,38 +224,124 @@ export default function HomePage() {
                 onClickShowUserList();
               }}
             >
-              {usersLoggedIn()} users logged in
+              {currentUsersData.length} users logged in
             </Button>
-          </Col>
-          <div>Votes graph with modal userVotes</div>
+          </Col>{" "}
+        </Row>
+        <Row className="ms-5 me-5 mb-3">
           <Button
-            variant="warning"
-            className="fs-4 fw-b ms-0 me-0 text-center"
+            variant="success"
+            className="fs-4 fw-b mt-3 text-center"
             onClick={() => {
-              mostLikedSong();
+              votesStats();
+              console.log("from button:", likedSongs);
+              console.log("also:", dislikedSongs);
             }}
           >
             get stats:
           </Button>
         </Row>
-        <Row></Row>
+        {likedSongs.map((s) => {
+          return (
+            <Row
+              className="mb-3 ms-5 me-5 fs-6"
+              key={`s-${s.song_id}`}
+              onClick={() => {
+                findUsers(s.song_id, "like");
+                onClickShowUserVotes();
+              }}
+            >
+              <li className="SongBlockLike">
+                <div
+                  className="percentage_coloring_like"
+                  style={{ width: percentage_coloring(s.likes) + "%" }}
+                />
+                <div
+                  className="songTextLike"
+                  style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
+                >
+                  ⭐️ {s.title} by {s.artist} (score: {s.likes} votes)
+                </div>
+              </li>
+            </Row>
+          );
+        })}
+        {dislikedSongs.map((s) => {
+          return (
+            <Row
+              className="mb-3 ms-5 me-5 fs-6"
+              key={`s-${s.title}`}
+              onClick={() => {
+                findUsers(s.song_id, "dislike");
+                onClickShowUserVotes();
+              }}
+            >
+              <li className="SongBlockdisLike">
+                <div
+                  className="percentage_coloring_dislike"
+                  style={{ width: percentage_coloring(s.dislikes) + "%" }}
+                />
+                <div
+                  className="songTextdisLike"
+                  style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
+                >
+                  ⭐️ {s.title} by {s.artist} (score: {s.dislikes} votes)
+                </div>
+              </li>
+            </Row>
+          );
+        })}
       </Container>
 
       {/* -o-o-o- MENU -o-o-o-o-o-o-oo-o-o--o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o- */}
-      <Modal show={showUserList} onHide={hideUserList}>
-        <Modal.Header closeButton className="d-flex justify-content-center">
-          <Modal.Title className="fs-1 fw-b">User List</Modal.Title>
+
+      <Modal show={showUserList} onHide={hideUserList} className="modalList">
+        <Row className="ms-2 me-2">
+          <Button variant="warning" className="ms-auto" onClick={hideUserList}>
+            Back to Main
+          </Button>
+        </Row>
+        <Modal.Header className="d-flex align-items-center">
+          <div className="d-flex flex-column w-100">
+            <Modal.Title className="fs-1 fw-b text-center">
+              User List
+            </Modal.Title>
+          </div>
         </Modal.Header>
         <Modal.Body>
-          {votes.map((v) => {
-            return (
-              <Row key={`vote-${v.id}`} className="mt-1 fs-5 mb-2">
-                id: {v.user_id}, username: <b>{v.username}</b> likes and
-                dislike...
-              </Row>
-            );
-          })}
+          {currentUsersData.length > 0 ? (
+            currentUsersData.map((u) => {
+              return (
+                <div key={`vote-${u.user_id}`}>
+                  <Row className="mt-1 fs-5 mb-2">
+                    <Col md={5}>
+                      username: {u.username} (id: {u.user_id})
+                    </Col>
+                    <Col md={6}>
+                      {u.prefs.length > 0 ? (
+                        u.prefs.map((p) => (
+                          <p key={p.song_id}>
+                            {p.like ? (
+                              <>likes: {p.title}</>
+                            ) : (
+                              <>dislikes: {p.title}</>
+                            )}
+                          </p>
+                        ))
+                      ) : (
+                        <>No preferences</>
+                      )}
+                    </Col>
+                  </Row>
+                  <hr /> {/* Horizontal line */}
+                </div>
+              );
+            })
+          ) : (
+            <>No users found</>
+          )}
         </Modal.Body>
+
         <Modal.Body className="d-flex justify-content-between align-items-center">
           <div>
             Powered by Apple
@@ -262,144 +363,37 @@ export default function HomePage() {
           </Button>
         </Modal.Body>
       </Modal>
-      {/* -o-o-o- SONGLIST -o-o--o-o-o-o-o-o-o-o-o-o-o-o-o--o-o-o-o-o-o--o--o-o-o-o- */}
-      {/* <Modal show={showUserVotes} onHide={hideUserVotes} className="modalList">
+
+      {/* -o-o-o- VOTERS FOR ONE SONG-o-o--o-o-o-o-o-o-o-o-o-o-o-o-o--o-o-o-o-o-o--o--o-o-o-o- */}
+
+      <Modal show={showUserVotes} onHide={hideUserVotes} className="modalList">
         <Row className="ms-2 me-2">
-          <Button
-            variant="warning"
-            onClick={() => {
-              hideSongs();
-              onClickShowMenu();
-            }}
-          >
-            Back to Menu
+          <Button variant="warning" className="ms-auto" onClick={hideUserVotes}>
+            Back to Main
           </Button>
         </Row>
-        <Modal.Header className="d-flex justify-content-between align-items-center">
+        <Modal.Header className="d-flex align-items-center">
           <div className="d-flex flex-column w-100">
-            <Modal.Title className="fs-6 fw-b">
-              Song List: <p>(click on title for lyrics)</p>
+            <Modal.Title className="fs-3 text-center">
+              Votes for&nbsp;&nbsp;
+              <b>{!songVoters[0] ? <>no one</> : songVoters[0].title}</b>
             </Modal.Title>
           </div>
-          <div>
-            <Button
-              variant="secondary"
-              className="fs-6 fw-b ms-2"
-              onClick={() => {
-                dispatch(resetFavData());
-              }}
-            >
-              Reset
-            </Button>
-          </div>{" "}
         </Modal.Header>
-        <Modal.Header className="mb-4">
-          <Form.Select
-            id="sortList"
-            name="sortSongList"
-            className="fs-3"
-            value={listSorting}
-            onChange={(e) => {
-              setListSorting(e.target.value);
-              localStorage.setItem("songListSorting", e.target.value);
-            }}
-          >
-            <option value="id">Sort list by:</option>
-            <option value="title">List by Song Title</option>
-            <option value="artist">List by Artist Name</option>
-            <option value="favorites">List only your Favorites</option>
-          </Form.Select>
-        </Modal.Header>
-
-        {sortedSongList(listSorting).map((song) => {
-          return (
-            <Row key={song.id} className="align-items-center ms-2 mb-2">
-              <Col md={8} className="text-start fs-1">
-                <Button
-                  variant={searchFavData(song.id)?.color || "outline-secondary"}
-                  className="text-light fs-4 fw-b text-start w-100"
-                  style={{
-                    textShadow: "2px 2px 4px rgba(0, 0, 0, 0.5)", // Add shadow to the text
-                  }}
-                  onClick={() => {
-                    setChosenSong(song);
-                    onClickShowLyrics();
-                    hideSongs();
-                  }}
-                >
-                  {song.title} - {song.artist}
-                </Button>
-              </Col>
-              {!searchFavData(song.id) ? (
-                <NoLike key={song.id} id={song.id} />
-              ) : (
-                fav.map((u) => {
-                  if (u.id === song.id) {
-                    if (u.like === 1 && u.dislike === 0) {
-                      return <Like key={`like-${u.id}`} id={song.id} />;
-                    } else if (u.like === 0 && u.dislike === 1) {
-                      return <DisLike key={`dislike-${u.id}`} id={song.id} />;
-                    } else if (u.like === 0 && u.dislike === 0) {
-                      return <NoLike key={`dislike-${u.id}`} id={song.id} />;
-                    }
-                  }
-                  return null;
-                })
-              )}
-            </Row>
-          );
-        })}
-
-        <Row className="mt-5 mb-3">
-          <Button
-            variant={!localStorage.muziekRoute_username ? "secondary" : "info"}
-            className="text-left fs-1"
-            onClick={async () => {
-              if (!userId && !username) {
-                hideSongs();
-                navigate("./login");
-              } else {
-                try {
-                  await dispatch(resetVotes(userId));
-                  sendPrefs();
-                  alert("SUCCESS! We have received your concert preferences");
-                } catch (error) {
-                  alert("Failed to erase login data. Please try again.");
-                }
-              }
-            }}
-          >
-            Send us your Musical Preferences!
-          </Button>
-        </Row>
-        <Modal.Body className="text-end">
-          <Button
-            variant="danger"
-            className="me-5"
-            onClick={async () => {
-              try {
-                await dispatch(removeUser(userId));
-                dispatch(resetUserLoginData());
-                alert("Your Login Data is now erased");
-              } catch (error) {
-                alert("Failed to erase login data. Please try again.");
-              }
-            }}
-          >
-            Reset Login Data
-          </Button>
-
-          <Button
-            variant="warning"
-            onClick={() => {
-              hideSongs();
-              onClickShowMenu();
-            }}
-          >
-            Back to Menu
-          </Button>
+        <Modal.Body className="fs-2 text-center">
+          {songVoters.map((s) => {
+            return <p key={s.user_id}>{s.username},</p>;
+          })}
         </Modal.Body>
-      </Modal> */}
+        <Button
+          variant="warning"
+          onClick={() => {
+            hideUserVotes();
+          }}
+        >
+          Back to Main
+        </Button>
+      </Modal>
     </>
   );
 }

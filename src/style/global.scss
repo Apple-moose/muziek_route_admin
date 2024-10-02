@@ -1,6 +1,69 @@
 @import "./config";
 @import "~bootstrap";
 
+.SongBlockLike {
+  display: block;
+  border-radius: 15px;
+  background: rgba(101, 103, 101, 0.3);
+  position: relative;
+  padding: 0.2rem;
+  overflow: hidden;
+
+  .songTextLike {
+    position: relative;
+    z-index: 2;
+    color: white;
+  }
+
+  .percentage_coloring_like {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, $like, $lotlike);
+    z-index: 1;
+    transition: all 0.9s ease;
+    border-radius: 15px;
+  }
+}
+
+.SongBlockdisLike {
+  display: block;
+  border-radius: 15px;
+  background: rgba(101, 103, 101, 0.3);
+  position: relative;
+  padding: 0.2rem;
+  overflow: hidden;
+
+  .songTextdisLike {
+    position: relative;
+    z-index: 2;
+    color: white;
+  }
+
+  .percentage_coloring_dislike {
+    position: absolute;
+    border-radius: 15px;
+    bottom: 0;
+    left: 0;
+    height: 100%;
+    background: linear-gradient(90deg, $dislike, $lotdislike);
+    z-index: 1;
+    transition: all 0.9s ease;
+  }
+}
+// button1 {
+//   position: absolute;
+//   top: 0.35rem;
+//   right: 8rem;
+//   bottom: 0.65rem;
+
+//   background: rgb(156, 229, 238);
+
+//   font-family: inherit;
+//   transition: all 0.9s ease;
+// }
+
 .modalLyrics .modal-dialog {
   width: 100%; // Make the dialog width 100% of the viewport
   max-width: 100%; // Prevent the dialog from exceeding viewport width
