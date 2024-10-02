@@ -6,7 +6,10 @@ export const selectVotes = selectVotesState;
 
 export const selectFilteredVotes = (show_no) =>
   createSelector([selectVotesState], (votes) => {
-    return votes.filter((v) => v.show_no === parseInt(show_no));
+    if (show_no !== "0") {
+      return votes.filter((v) => v.show_no === parseInt(show_no));
+    }
+    return [...votes]; // Return a shallow copy of the votes array
   });
 
 //   export const selectVotesBySongs = createSelector(

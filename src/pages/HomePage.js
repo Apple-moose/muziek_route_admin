@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import "../style/global.scss";
 import { Clock } from "../components/Clock";
-import { selectVotes } from "../store/votes/selectors.js";
+import { selectVotes, selectFilteredVotes } from "../store/votes/selectors.js";
 import {
   Container,
   Col,
@@ -15,11 +15,9 @@ import {
 import { fetchVotes } from "../store/votes/actions";
 
 export default function HomePage() {
-  const votes = useSelector(selectVotes);
-
   const dispatch = useDispatch();
 
-  const [shownoSorting, setShownoSorting] = useState(false);
+  const [shownoSorting, setShownoSorting] = useState("0");
   const [showUserList, setShowUserList] = useState(false);
   const [showUserVotes, setShowUserVotes] = useState(false);
 
@@ -28,53 +26,31 @@ export default function HomePage() {
   const [songVoters, setSongVoters] = useState([]);
   const [currentUsersData, setCurrentUsersData] = useState([]);
 
-  //   const [songLikeVoters, setSongLikeVoters] = useState([]);
-  //   const [songDislikeVoters, setSongDislikeVoters] = useState([]);
-
-  //   const [votingUsers, setVotingUsers] = useState([]);
-
-  //   const [totalLikes, setTotalLikes] = useState(0);
-  //   const [totalDislikes, setTotalDislikes] = useState(0);
-
   const onClickShowUserList = () => setShowUserList(true);
   const onClickShowUserVotes = () => setShowUserVotes(true);
 
   const hideUserList = () => setShowUserList(false);
   const hideUserVotes = () => setShowUserVotes(false);
 
-  //   const searchFavData = (favId) => {
-  //     return fav.find((u) => u.id === favId);
-  //   };
+  const allVotes = useSelector(selectVotes);
+  const votes = useSelector(selectFilteredVotes(shownoSorting));
 
-  //   const findLikes = () => {
-  //     let array1 = fav.filter((s) => s.like === 1);
-  //     let likedSongs = array1.map((t) => songList.find((i) => i.id === t.id));
-  //     return likedSongs.filter((song) => song);
-  //   };
   //-----------------VOTING SYSTEM------------------------------
-
-  //all votes:
-  const allVotes = () => votes.length;
 
   //Create liked/disliked arrays
   const votesStats = () => {
-    const likedSongs = {};
-    const dislikedSongs = {};
-    // let totalLikes = 0;
-    // let totalDislikes = 0;
+    const likedSongs = [];
+    const dislikedSongs = [];
 
     votes.forEach((v) => {
       const key = `${v.song_id} + ${v.title} + ${v.artist}`;
 
       if (v.like === 1) {
         likedSongs[key] = (likedSongs[key] || 0) + 1;
-        // totalLikes = totalLikes + 1;
       } else {
         dislikedSongs[key] = (dislikedSongs[key] || 0) + 1;
-        // totalDislikes = totalDislikes + 1;
       }
     });
-
     // Convert the likedSongs object into an array
     const likedSongsArray = Object.entries(likedSongs).map(([key, likes]) => {
       const [song_id, title, artist] = key.split("+");
@@ -113,53 +89,67 @@ export default function HomePage() {
     return (song / currentUsersData.length) * 100;
   };
 
-  //-----------------DEPENDENCIES-------------------------------
+  //-----------------CREATION OF USER_DATA_ARRAY-------------------------------
+
+  //   useEffect(() => {
+  const usersLoggedIn = () => {
+    let usersDataArray = [];
+    const Users = new Set(votes.map((v) => v.user_id));
+
+    Users.forEach((u) => {
+      const userVote = votes.find((v) => u === v.user_id);
+      if (userVote) {
+        const userData = {
+          user_id: userVote.user_id,
+          username: userVote.username,
+          prefs: [],
+        };
+        const userPrefs = votes.filter((v) => u === v.user_id);
+        userPrefs.forEach((vote) => {
+          if (vote.like === 1) {
+            userData.prefs.push({
+              song_id: vote.song_id,
+              title: vote.title,
+              like: 1,
+            });
+          }
+          if (vote.dislike === 1) {
+            userData.prefs.push({
+              song_id: vote.song_id,
+              title: vote.title,
+              like: 0,
+            });
+          }
+        });
+        usersDataArray.push(userData);
+      }
+    });
+    setCurrentUsersData(usersDataArray);
+    console.log("at useEffect userArray: ", usersDataArray);
+  };
+
+  // usersLoggedIn();
+  //   }, [shownoSorting]);
+
+  //---------------------DEPENDENCIES---------------------------------------
 
   useEffect(() => {
-    const usersLoggedIn = () => {
-      let usersDataArray = [];
-      const Users = new Set(votes.map((v) => v.user_id));
-
-      Users.forEach((u) => {
-        const userVote = votes.find((v) => u === v.user_id);
-        if (userVote) {
-          const userData = {
-            user_id: userVote.user_id,
-            username: userVote.username,
-            prefs: [],
-          };
-          const userPrefs = votes.filter((v) => u === v.user_id);
-          userPrefs.forEach((vote) => {
-            if (vote.like === 1) {
-              userData.prefs.push({
-                song_id: vote.song_id,
-                title: vote.title,
-                like: 1,
-              });
-            }
-            if (vote.dislike === 1) {
-              userData.prefs.push({
-                song_id: vote.song_id,
-                title: vote.title,
-                like: 0,
-              });
-            }
-          });
-          usersDataArray.push(userData);
-        }
-      });
-      setCurrentUsersData(usersDataArray);
-      console.log("at useEffect: ", usersDataArray);
+    const fetchData = async () => {
+      await dispatch(fetchVotes());
+      const savedSorting =
+        localStorage.getItem("muziek_route_shownoSorting") || "0";
+      setShownoSorting(savedSorting);
     };
 
+    fetchData();
+    votesStats();
     usersLoggedIn();
-  }, [votes]);
+  }, [dispatch]);
 
   useEffect(() => {
-    dispatch(fetchVotes());
-    !localStorage.muziek_route_shownoSorting
-      ? setShownoSorting("13")
-      : setShownoSorting(localStorage.getItem("muziek_route_shownoSorting"));
+    if (votes.length > 0) {
+      votesStats();
+    }
   }, []);
 
   //-----------------RENDER--------------------------------
@@ -172,10 +162,8 @@ export default function HomePage() {
           backgroundImage: `url('V_M_fiets_BG.jpg')`,
           backgroundSize: "cover",
           backgroundPosition: "start",
-          backgroundRepeat: "2",
           height: "100vh",
           width: "100vw",
-          zIndex: 1,
         }}
         fluid
         className="text-white"
@@ -199,7 +187,7 @@ export default function HomePage() {
             <Form.Select
               id="shownoSorting"
               name="show_no Sorting"
-              className="fs-3 ms-3 me-20"
+              className="fs-4 ms-3 me-20"
               value={shownoSorting}
               onChange={(e) => {
                 setShownoSorting(e.target.value);
@@ -207,19 +195,21 @@ export default function HomePage() {
                   "muziek_route_shownoSorting",
                   e.target.value
                 );
+                votesStats();
+                usersLoggedIn();
               }}
             >
-              <option>Choose Concert</option>
+              <option value="0">All Concerts</option>
               <option value="13">Concert 13h</option>
               <option value="14">Concert 14h</option>
               <option value="15">Concert 15h</option>
               <option value="16">Concert 16h</option>
             </Form.Select>
           </Col>
-          <Col md={6}>
+          <Col md={8} className="d-flex justify-content-end">
             <Button
               variant="warning"
-              className="fs-4 fw-b ms-0 me-0 text-center"
+              className="fs-4 fw-b ms-2 me-4 text-center"
               onClick={() => {
                 onClickShowUserList();
               }}
@@ -234,8 +224,6 @@ export default function HomePage() {
             className="fs-4 fw-b mt-3 text-center"
             onClick={() => {
               votesStats();
-              console.log("from button:", likedSongs);
-              console.log("also:", dislikedSongs);
             }}
           >
             get stats:
@@ -291,6 +279,17 @@ export default function HomePage() {
             </Row>
           );
         })}
+        <Row className="d-flex fs-3 justify-content-center align-items-center">
+          Powered by Apple
+          <Image
+            size={30}
+            src="Moose-Icon(Small).png"
+            alt="logo not found!"
+            className="text-left"
+            style={{ width: "10%", height: "auto" }}
+          />
+          Moose
+        </Row>
       </Container>
 
       {/* -o-o-o- MENU -o-o-o-o-o-o-oo-o-o--o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o-o- */}
@@ -342,7 +341,7 @@ export default function HomePage() {
           )}
         </Modal.Body>
 
-        <Modal.Body className="d-flex justify-content-between align-items-center">
+        <Modal.Body className="d-flex fs-3 justify-content-between align-items-center">
           <div>
             Powered by Apple
             <Image
