@@ -1,8 +1,8 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import "../style/global.scss";
 import { Clock } from "../components/Clock";
-import { selectVotes, selectFilteredVotes } from "../store/votes/selectors.js";
+import { selectFilteredVotes } from "../store/votes/selectors.js";
 import {
   Container,
   Col,
@@ -17,9 +17,10 @@ import { fetchVotes } from "../store/votes/actions";
 export default function HomePage() {
   const dispatch = useDispatch();
 
-  const [shownoSorting, setShownoSorting] = useState("0");
+  const [shownoSorting, setShownoSorting] = useState("");
   const [showUserList, setShowUserList] = useState(false);
   const [showUserVotes, setShowUserVotes] = useState(false);
+  const [dataFetched, setDataFetched] = useState(false);
 
   const [likedSongs, setLikedSongs] = useState([]);
   const [dislikedSongs, setDislikedSongs] = useState([]);
@@ -32,9 +33,29 @@ export default function HomePage() {
   const hideUserList = () => setShowUserList(false);
   const hideUserVotes = () => setShowUserVotes(false);
 
-  const allVotes = useSelector(selectVotes);
   const votes = useSelector(selectFilteredVotes(shownoSorting));
 
+  //---------------------FIND USERS FROM VOTED SONG-----------------------
+
+  const findUsers = (songId, type) => {
+    let userArray = [];
+    if (type === "like") {
+      userArray = votes.filter(
+        (v) => Number(v.song_id) === Number(songId) && Number(v.like) === 1
+      );
+    } else if (type === "dislike") {
+      userArray = votes.filter(
+        (v) => Number(v.song_id) === Number(songId) && Number(v.dislike) === 1
+      );
+    }
+    setSongVoters(userArray);
+  };
+
+  //---------------------STATS COLORING EQUATION----------------------------
+
+  const percentage_coloring = (song) => {
+    return (song / currentUsersData.length) * 100;
+  };
   //-----------------VOTING SYSTEM------------------------------
 
   //Create liked/disliked arrays
@@ -65,33 +86,10 @@ export default function HomePage() {
     );
     setLikedSongs(likedSongsArray);
     setDislikedSongs(dislikedSongsArray);
-  };
-
-  //---------------------FIND USERS FROM VOTED SONG-----------------------
-
-  const findUsers = (songId, type) => {
-    let userArray = [];
-    if (type === "like") {
-      userArray = votes.filter(
-        (v) => Number(v.song_id) === Number(songId) && Number(v.like) === 1
-      );
-    } else if (type === "dislike") {
-      userArray = votes.filter(
-        (v) => Number(v.song_id) === Number(songId) && Number(v.dislike) === 1
-      );
-    }
-    setSongVoters(userArray);
-  };
-
-  //---------------------STATS COLORING EQUATION----------------------------
-
-  const percentage_coloring = (song) => {
-    return (song / currentUsersData.length) * 100;
+    console.log("votesstats working...:", likedSongsArray, dislikedSongsArray);
   };
 
   //-----------------CREATION OF USER_DATA_ARRAY-------------------------------
-
-  //   useEffect(() => {
   const usersLoggedIn = () => {
     let usersDataArray = [];
     const Users = new Set(votes.map((v) => v.user_id));
@@ -102,6 +100,7 @@ export default function HomePage() {
         const userData = {
           user_id: userVote.user_id,
           username: userVote.username,
+          show_no: userVote.show_no,
           prefs: [],
         };
         const userPrefs = votes.filter((v) => u === v.user_id);
@@ -125,11 +124,8 @@ export default function HomePage() {
       }
     });
     setCurrentUsersData(usersDataArray);
-    console.log("at useEffect userArray: ", usersDataArray);
+    console.log("at userLoggedin final userDataArray: ", usersDataArray);
   };
-
-  // usersLoggedIn();
-  //   }, [shownoSorting]);
 
   //---------------------DEPENDENCIES---------------------------------------
 
@@ -140,17 +136,23 @@ export default function HomePage() {
         localStorage.getItem("muziek_route_shownoSorting") || "0";
       setShownoSorting(savedSorting);
     };
-
     fetchData();
-    votesStats();
-    usersLoggedIn();
   }, [dispatch]);
 
   useEffect(() => {
-    if (votes.length > 0) {
+    if (shownoSorting !== "") {
       votesStats();
+      usersLoggedIn();
     }
-  }, []);
+  }, [shownoSorting]);
+
+  useEffect(() => {
+    if (dataFetched) {
+      usersLoggedIn();
+      votesStats();
+      setDataFetched(false);
+    }
+  }, [dataFetched]);
 
   //-----------------RENDER--------------------------------
 
@@ -162,7 +164,7 @@ export default function HomePage() {
           backgroundImage: `url('V_M_fiets_BG.jpg')`,
           backgroundSize: "cover",
           backgroundPosition: "start",
-          height: "100vh",
+          minHeight: "100vh",
           width: "100vw",
         }}
         fluid
@@ -171,23 +173,23 @@ export default function HomePage() {
         <Row className="mb-1 me-0 text-white text-center">
           {!localStorage.muziekRoute_username ||
           localStorage.muziekRoute_username.startsWith("user-") ? (
-            <div className="mt-5 fs-1">⭐️Muziek Routers ADMIN Page !⭐️</div>
+            <div className="mt-5 fs-1">⭐️Muziek Routers ADMIN Page⭐️</div>
           ) : (
             <div className="mt-5 fs-1">
               ⭐️Welkom
-              {/* {userFav.username} */}
+              {/* {user.username} */}
               ⭐️
             </div>
           )}
         </Row>
         <Clock />
 
-        <Row className="mb-2 ms-4 me-3">
+        <Row className="mb-2 ms-5 me-5">
           <Col md={4}>
             <Form.Select
               id="shownoSorting"
               name="show_no Sorting"
-              className="fs-4 ms-3 me-20"
+              className="fs-4"
               value={shownoSorting}
               onChange={(e) => {
                 setShownoSorting(e.target.value);
@@ -195,8 +197,6 @@ export default function HomePage() {
                   "muziek_route_shownoSorting",
                   e.target.value
                 );
-                votesStats();
-                usersLoggedIn();
               }}
             >
               <option value="0">All Concerts</option>
@@ -206,10 +206,10 @@ export default function HomePage() {
               <option value="16">Concert 16h</option>
             </Form.Select>
           </Col>
-          <Col md={8} className="d-flex justify-content-end">
+          <Col md={8}>
             <Button
               variant="warning"
-              className="fs-4 fw-b ms-2 me-4 text-center"
+              className="fs-4 fw-b text-center w-100"
               onClick={() => {
                 onClickShowUserList();
               }}
@@ -222,8 +222,13 @@ export default function HomePage() {
           <Button
             variant="success"
             className="fs-4 fw-b mt-3 text-center"
-            onClick={() => {
-              votesStats();
+            onClick={async () => {
+              try {
+                await dispatch(fetchVotes());
+                setDataFetched(true);
+              } catch (error) {
+                console.error("Error fetching votes:", error);
+              }
             }}
           >
             get stats:
@@ -248,7 +253,7 @@ export default function HomePage() {
                   className="songTextLike"
                   style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
                 >
-                  ⭐️ {s.title} by {s.artist} (score: {s.likes} votes)
+                  👍 {s.title} by {s.artist} (score: {s.likes} votes)
                 </div>
               </li>
             </Row>
@@ -273,7 +278,7 @@ export default function HomePage() {
                   className="songTextdisLike"
                   style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
                 >
-                  ⭐️ {s.title} by {s.artist} (score: {s.dislikes} votes)
+                  👎 {s.title} by {s.artist} (score: {s.dislikes} votes)
                 </div>
               </li>
             </Row>
@@ -314,17 +319,13 @@ export default function HomePage() {
                 <div key={`vote-${u.user_id}`}>
                   <Row className="mt-1 fs-5 mb-2">
                     <Col md={5}>
-                      username: {u.username} (id: {u.user_id})
+                      (#{u.user_id}) 👉 {u.username} ⇢ {u.show_no}h
                     </Col>
                     <Col md={6}>
                       {u.prefs.length > 0 ? (
                         u.prefs.map((p) => (
                           <p key={p.song_id}>
-                            {p.like ? (
-                              <>likes: {p.title}</>
-                            ) : (
-                              <>dislikes: {p.title}</>
-                            )}
+                            {p.like ? <>💖 {p.title}</> : <>🤮 {p.title}</>}
                           </p>
                         ))
                       ) : (
@@ -332,7 +333,7 @@ export default function HomePage() {
                       )}
                     </Col>
                   </Row>
-                  <hr /> {/* Horizontal line */}
+                  <hr />
                 </div>
               );
             })

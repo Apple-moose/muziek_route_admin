@@ -4,7 +4,7 @@ import "../style/global.scss";
 const Clock = () => {
   const getCurrentTime = () => {
     const now = new Date();
-    return now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
   };
 
   const [currentTime, setCurrentTime] = useState(getCurrentTime());
@@ -19,7 +19,7 @@ const Clock = () => {
 
   const backgroundStyle = {
     height: "10vh",
-    marginBottom: "1rem",
+    // marginBottom: "0.5rem",
     display: "flex",
     justifyContent: "center",
     alignItems: "center",
