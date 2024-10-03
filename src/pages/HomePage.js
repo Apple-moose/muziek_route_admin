@@ -246,13 +246,15 @@ export default function HomePage() {
               }
             }}
           >
-            get stats:
+            Get Statistics
           </Button>
         </Row>
+        <Row>
+        <Col md={6}>
         {likedSongs.map((s) => {
           return (
             <Row
-              className="mb-3 ms-5 me-5 fs-6"
+              className="mb-3 ms-5 me-1 fs-6"
               key={`s-${s.song_id}`}
               onClick={() => {
                 findUsers(s.song_id, "like");
@@ -273,11 +275,12 @@ export default function HomePage() {
               </li>
             </Row>
           );
-        })}
+        })}</Col>
+        <Col md={6}>
         {dislikedSongs.map((s) => {
           return (
             <Row
-              className="mb-3 ms-5 me-5 fs-6"
+              className="mb-3 ms-1 me-5 fs-6"
               key={`s-${s.title}`}
               onClick={() => {
                 findUsers(s.song_id, "dislike");
@@ -293,12 +296,12 @@ export default function HomePage() {
                   className="songTextdisLike"
                   style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
                 >
-                  👎 {s.title} by {s.artist} ({s.dislikes} votes)
+                  👎 {s.title} by {s.artist} (score: {s.dislikes} votes)
                 </div>
               </li>
             </Row>
           );
-        })}
+        })}</Col></Row>
         <Row className="d-flex fs-3 justify-content-center align-items-center">
           Powered by Apple
           <Image
