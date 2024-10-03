@@ -101,7 +101,7 @@ export default function HomePage() {
     };
     setLikedSongs(likedSongsSorted);
     setDislikedSongs(dislikedSongsSorted);
-    console.log("votesstats working...:", likedSongsArray, dislikedSongsArray);
+    // console.log("votesstats working...:", likedSongsArray, dislikedSongsArray);
   };
 
   //-----------------CREATION OF USER_DATA_ARRAY-------------------------------
@@ -139,7 +139,7 @@ export default function HomePage() {
       }
     });
     setCurrentUsersData(usersDataArray);
-    console.log("at userLoggedin final userDataArray: ", usersDataArray);
+    // console.log("at userLoggedin final userDataArray: ", usersDataArray);
   };
 
   //---------------------DEPENDENCIES---------------------------------------

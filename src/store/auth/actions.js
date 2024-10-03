@@ -8,10 +8,10 @@ import {
 } from "./slice";
 
 //Local URL------>
-const API_URL = `http://localhost:5432`;
+// const API_URL = `http://localhost:5432`;
 
 //Web URL------>
-// const API_URL = `https://webshop-api-sr7l.onrender.com`;
+const API_URL = `https://muziek-route-api.onrender.com`;
 
 export function Signup(signUsername, signPassword, is_Admin, navigate) {
   return async function thunk(dispatch, getState) {
