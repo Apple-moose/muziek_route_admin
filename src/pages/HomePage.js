@@ -77,6 +77,14 @@ export default function HomePage() {
       const [song_id, title, artist] = key.split("+");
       return { song_id, title, artist, likes };
     });
+    //Order by votes(likes)
+    const likedSongsSorted = () => {
+      return likedSongsArray.sort((a, b) => {
+        if (parseInt(b.likes) > parseInt(a.likes)) return 1;
+        else if (parseInt(b.likes) < parseInt(a.likes)) return -1;
+        else return 0;
+      });
+    };
 
     const dislikedSongsArray = Object.entries(dislikedSongs).map(
       ([key, dislikes]) => {
@@ -84,8 +92,15 @@ export default function HomePage() {
         return { song_id, title, artist, dislikes };
       }
     );
-    setLikedSongs(likedSongsArray);
-    setDislikedSongs(dislikedSongsArray);
+    const dislikedSongsSorted = () => {
+      return dislikedSongsArray.sort((a, b) => {
+        if (parseInt(b.dislikes) > parseInt(a.dislikes)) return 1;
+        else if (parseInt(b.dislikes) < parseInt(a.dislikes)) return -1;
+        else return 0;
+      });
+    };
+    setLikedSongs(likedSongsSorted);
+    setDislikedSongs(dislikedSongsSorted);
     console.log("votesstats working...:", likedSongsArray, dislikedSongsArray);
   };
 
@@ -253,7 +268,7 @@ export default function HomePage() {
                   className="songTextLike"
                   style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
                 >
-                  👍 {s.title} by {s.artist} (score: {s.likes} votes)
+                  👍 {s.title} by {s.artist} ({s.likes} votes)
                 </div>
               </li>
             </Row>
@@ -278,7 +293,7 @@ export default function HomePage() {
                   className="songTextdisLike"
                   style={{ textShadow: "2px 2px 4px rgba(0,0,0,0.7)" }}
                 >
-                  👎 {s.title} by {s.artist} (score: {s.dislikes} votes)
+                  👎 {s.title} by {s.artist} ({s.dislikes} votes)
                 </div>
               </li>
             </Row>
